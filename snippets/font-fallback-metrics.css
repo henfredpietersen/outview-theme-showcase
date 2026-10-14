@@ -1,0 +1,48 @@
+/*
+ * Illustrative reconstruction — not a verbatim file copy. See
+ * docs/PERFORMANCE-ENGINEERING.md, section 2, for the full explanation.
+ *
+ * The problem: a self-hosted web font still has to download before it can
+ * render. In the meantime the browser shows a fallback system font — and if
+ * that fallback's character widths and line-height don't match the real
+ * font's, the page reflows the instant the real font swaps in. That reflow
+ * is a layout shift (CLS), and it has nothing to do with how fast the font
+ * loads — it happens even on a fast connection.
+ *
+ * The fix: declare a fallback @font-face with the same family-level metrics
+ * (ascent/descent/line-gap) as the real font, so the fallback occupies the
+ * exact box the real font will. When the swap happens, nothing below it
+ * moves — same idea as the Capsize / Fontaine "metric-matched fallback"
+ * technique, done by hand here with no build-step tooling.
+ */
+
+/* The real, self-hosted variable font. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: optional; /* never show, then swap — avoids the shift entirely on a slow connection */
+  src: url('fonts/inter-var-latin.woff2') format('woff2');
+}
+
+/*
+ * A metric-matched fallback, built from a system font (Arial) but tuned to
+ * occupy the same vertical space Inter does. ascent/descent/line-gap are
+ * percentages of the font's own em-square — these values are Inter-specific;
+ * recalculate them for any other font pairing (tools like Fontaine or
+ * capsize.app compute them from the two fonts' own metrics tables).
+ */
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  ascent-override: 90.2%;
+  descent-override: 22.3%;
+  line-gap-override: 0%;
+  size-adjust: 107%;
+}
+
+body {
+  /* The fallback is listed second so it's what paints first, before the
+     real font (declared font-display: optional above) is ready. */
+  font-family: 'Inter', 'Inter Fallback', Arial, sans-serif;
+}
