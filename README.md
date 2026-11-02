@@ -34,7 +34,7 @@ CLS threshold for a passing score is 0.1 — the pre-fix site was landing at nea
 ## The optimizations, at a glance
 
 **Rendering path**
-- Hand-authored critical CSS, inlined in `<head>` at the earliest WordPress hook available (`wp_head`, priority 1) — replacing the hosting stack's own auto-generated critical CSS, which had already caused a site-wide CLS spike once before by silently shipping a broken snapshot.
+- Custom critical CSS, inlined in `<head>` at the earliest WordPress hook available (`wp_head`, priority 1) — replacing the hosting stack's own auto-generated critical CSS, which had already caused a site-wide CLS spike once before by silently shipping a broken snapshot.
 - A **staleness guard**: a wp-admin notice that fires if the critical CSS string and the real stylesheet (or the real template markup) ever drift apart — so "critical CSS is stale" is caught in the admin bar, not by a Lighthouse regression three weeks later.
 - Self-hosted variable fonts (no third-party font-request round trip) with **metric-matched fallback faces** — ascent/descent/line-gap overrides tuned so the fallback font occupies the exact box the real font will, so swapping in the web font doesn't shift anything below it.
 
@@ -46,7 +46,7 @@ CLS threshold for a passing score is 0.1 — the pre-fix site was landing at nea
 
 **Layout stability**
 - A mobile CLS regression traced to `100vh` recalculating every time the mobile browser's URL bar animates in and out — fixed by switching to `100svh` (stable viewport height), which doesn't.
-- A second, harder regression traced to the *hosting platform's own* critical-CSS feature being silently re-enabled (most likely by a plugin update resetting the toggle) and running in parallel with this theme's hand-built system — two independent mechanisms both swapping in stylesheets for the same hero section, each triggering its own reflow. Root-caused by correlating a settings-table timestamp against the Lighthouse capture time down to the minute, not by guessing.
+- A second, harder regression traced to the *hosting platform's own* critical-CSS feature being silently re-enabled (most likely by a plugin update resetting the toggle) and running in parallel with this theme's own system — two independent mechanisms both swapping in stylesheets for the same hero section, each triggering its own reflow. Root-caused by correlating a settings-table timestamp against the Lighthouse capture time down to the minute, not by guessing.
 - A later decorative background feature (an animated SVG treatment) was deliberately built to never touch this budget: pinned off-page-flow (`position: fixed`), excluded from the critical CSS path on purpose, a lighter animation variant on every page except the homepage, and a full `prefers-reduced-motion` fallback.
 
 **Verification discipline**
@@ -63,7 +63,7 @@ Outview's site and its WordPress products are built end-to-end with Claude as th
 
 ## Stack
 
-WordPress · WooCommerce · a custom theme (no parent theme, no page builder) · hand-authored critical CSS · self-hosted variable fonts · PageSpeed Insights / Lighthouse for verification.
+WordPress · WooCommerce · a custom theme (no parent theme, no page builder) · custom critical CSS · self-hosted variable fonts · PageSpeed Insights / Lighthouse for verification.
 
 ## Live site
 
